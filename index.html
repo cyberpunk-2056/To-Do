@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity Pro | Daily Task Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #8b5cf6;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --dark-light: #334155;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --gray-light: #e2e8f0;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --border-radius: 16px;
+            --border-radius-sm: 12px;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header Styles */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 24px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-title h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .app-icon {
+            background: rgba(255, 255, 255, 0.2);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        /* Auth Styles */
+        .auth-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 15px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .sync-status {
+            font-size: 0.75rem;
+            margin-top: 5px;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .sync-success {
+            color: #a7f3d0;
+        }
+
+        .sync-error {
+            color: #fecaca;
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        /* Left Panel - Tasks */
+        .tasks-panel {
+            background: var(--light);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--gray-light);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .panel-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .date-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+        }
+
+        .date-btn {
+            background: var(--primary);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .date-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .current-date {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            flex: 1;
+            text-align: center;
+        }
+
+        .add-task {
+            display: flex;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+
+        .task-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .task-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .add-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .task-list {
+            list-style: none;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .task-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .task-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .task-item {
+            background: white;
+            margin-bottom: 12px;
+            padding: 18px 20px;
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.5s ease;
+            transition: var(--transition);
+            border-left: 4px solid var(--primary);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .task-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item.completed {
+            background: #f8fafc;
+            opacity: 0.8;
+            border-left-color: var(--secondary);
+        }
+
+        .task-checkbox {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--secondary);
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: var(--gray);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .task-item:hover .task-actions {
+            opacity: 1;
+        }
+
+        .task-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+            color: var(--gray);
+        }
+
+        .edit-btn:hover {
+            color: var(--accent);
+        }
+
+        .delete-btn:hover {
+            color: var(--danger);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--gray-light);
+        }
+
+        /* Right Panel - Timers */
+        .timers-panel {
+            background: white;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .timer-toggle {
+            display: flex;
+            background: var(--gray-light);
+            border-radius: 50px;
+            padding: 6px;
+            margin-bottom: 25px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--dark);
+            padding: 12px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        /* Timer Containers */
+        .timer-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pomodoro-timer, .normal-timer {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .pomodoro-timer.active, .normal-timer.active {
+            display: flex;
+        }
+
+        /* Pomodoro Timer */
+        .pomodoro-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .pomodoro-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .timer-display {
+            font-size: 4.5rem;
+            font-weight: 700;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: var(--dark);
+            text-align: center;
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .timer-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .timer-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .timer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .timer-btn.secondary {
+            background: white;
+            color: var(--dark);
+            border: 1px solid var(--gray-light);
+        }
+
+        .timer-btn.secondary:hover {
+            background: var(--gray-light);
+        }
+
+        .timer-modes {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .mode-btn {
+            background: white;
+            border: 1px solid var(--gray-light);
+            color: var(--dark);
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .timer-progress {
+            height: 8px;
+            background: var(--gray-light);
+            border-radius: 4px;
+            margin-top: auto;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 1s linear;
+        }
+
+        .timer-status {
+            margin-top: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark);
+            text-align: center;
+        }
+
+        /* Normal Timer */
+        .normal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .normal-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .time-inputs {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: nowrap;
+        }
+
+        .time-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .time-input {
+            background: white;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius-sm);
+            color: var(--dark);
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 12px;
+            text-align: center;
+            width: 80px;
+            transition: var(--transition);
+        }
+
+        .time-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .time-separator {
+            font-size: 2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            color: var(--gray);
+            margin-top: 10px;
+        }
+
+        .time-label {
+            font-size: 0.8rem;
+            margin-top: 8px;
+            color: var(--gray);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Fullscreen Timer */
+        .fullscreen-timer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .fullscreen-timer.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .fullscreen-display {
+            font-size: 8rem;
+            font-weight: 700;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .fullscreen-status {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .fullscreen-controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .fullscreen-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .fullscreen-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .close-fullscreen {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .close-fullscreen:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .fullscreen-progress {
+            width: 80%;
+            max-width: 500px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .fullscreen-progress-bar {
+            height: 100%;
+            background: white;
+            width: 0%;
+            transition: width 1s linear;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .tasks-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--gray-light);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 12px;
+            }
+            
+            .app-header {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .auth-container {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .tasks-panel, .timers-panel {
+                padding: 20px;
+            }
+            
+            .timer-display {
+                font-size: 3.5rem;
+            }
+            
+            .fullscreen-display {
+                font-size: 5rem;
+            }
+            
+            .fullscreen-status {
+                font-size: 1.5rem;
+            }
+            
+            .timer-controls {
+                flex-wrap: wrap;
+            }
+            
+            /* FIXED: Time inputs stay horizontal on mobile */
+            .time-inputs {
+                flex-direction: row;
+                gap: 8px;
+            }
+            
+            .time-input {
+                width: 70px;
+                font-size: 1.3rem;
+                padding: 10px;
+            }
+            
+            .time-separator {
+                font-size: 1.5rem;
+                margin-top: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .app-title h1 {
+                font-size: 1.5rem;
+            }
+            
+            .date-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .add-task {
+                flex-direction: column;
+            }
+            
+            .task-input {
+                margin-bottom: 10px;
+            }
+            
+            .add-btn {
+                padding: 15px;
+                justify-content: center;
+            }
+            
+            .timer-controls, .fullscreen-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .timer-btn, .fullscreen-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .close-fullscreen {
+                top: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            /* FIXED: Ensure time inputs stay horizontal on very small screens */
+            .time-inputs {
+                gap: 5px;
+            }
+            
+            .time-input {
+                width: 60px;
+                font-size: 1.2rem;
+                padding: 8px;
+            }
+            
+            .time-separator {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            /* FIXED: Extra small screen optimization */
+            .time-inputs {
+                gap: 3px;
+            }
+            
+            .time-input {
+                width: 55px;
+                font-size: 1.1rem;
+                padding: 6px;
+            }
+            
+            .time-separator {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="app-title">
+                <div class="app-icon">
+                    <i class="fas fa-check-double"></i>
+                </div>
+                <h1>Productivity Pro</h1>
+            </div>
+            
+            <!-- Authentication Section -->
+            <div class="auth-container" id="auth-container">
+                <div id="user-info" class="user-info" style="display: none;">
+                    <img id="user-avatar" class="user-avatar" src="" alt="User Avatar">
+                    <span id="user-name" class="user-name"></span>
+                    <button class="logout-btn" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+                <div id="google-signin-button" class="google-signin-button"></div>
+                <div id="sync-status" class="sync-status"></div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel - Tasks -->
+            <div class="tasks-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-tasks"></i>
+                        Today's Tasks
+                    </div>
+                </div>
+                
+                <div class="date-container">
+                    <button class="date-btn" id="prev-date">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="current-date" id="current-date">Loading...</div>
+                    <button class="date-btn" id="next-date">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <div class="add-task">
+                    <input type="text" class="task-input" id="task-input" placeholder="What needs to be done?">
+                    <button class="add-btn" id="add-btn">
+                        <i class="fas fa-plus"></i> Add Task
+                    </button>
+                </div>
+                
+                <ul class="task-list" id="task-list">
+                    <!-- Tasks will be added here dynamically -->
+                </ul>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-tasks">0</div>
+                        <div class="stat-label">Total Tasks</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="completed-tasks">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="pending-tasks">0</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Timers -->
+            <div class="timers-panel">
+                <div class="timer-toggle">
+                    <button class="toggle-btn active" id="pomodoro-toggle">
+                        <i class="fas fa-clock"></i> Pomodoro
+                    </button>
+                    <button class="toggle-btn" id="normal-toggle">
+                        <i class="fas fa-stopwatch"></i> Timer
+                    </button>
+                </div>
+                
+                <!-- Pomodoro Timer -->
+                <div class="timer-container">
+                    <div class="pomodoro-timer active">
+                        <div class="pomodoro-header">
+                            <div class="pomodoro-title">
+                                <i class="fas fa-clock"></i>
+                                Focus Timer
+                            </div>
+                            <p>Work in focused intervals</p>
+                        </div>
+                        
+                        <div class="timer-display" id="timer-display">25:00</div>
+                        
+                        <div class="timer-controls">
+                            <button class="timer-btn" id="start-timer">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button class="timer-btn secondary" id="pause-timer" disabled>
+                                <i class="fas fa-pause"></i> Pause
+                            </button>
+                            <button class="timer-btn secondary" id="reset-timer">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                        </div>
+                        
+                        <button class="timer-btn" id="fullscreen-timer">
+                            <i class="fas fa-expand"></i> Full Screen
+                        </button>
+                        
+                        <div class="timer-modes">
+                            <button class="mode-btn active" data-mode="pomodoro">Focus</button>
+                            <button class="mode-btn" data-mode="short-break">Short Break</button>
+                            <button class="mode-btn" data-mode="long-break">Long Break</button>
+                        </div>
+                        
+                        <div class="timer-progress">
+                            <div class="progress-bar" id="progress-bar"></div>
+                        </div>
+                        
+                        <div class="timer-status" id="timer-status">Ready to focus!</div>
+                    </div>
+                    
+                    <!-- Normal Timer -->
+                    <div class="normal-timer">
+                        <div class="normal-header">
+                            <div class="normal-title">
+                                <i class="fas fa-stopwatch"></i>
+                                Custom Timer
+                            </div>
+                            <p>Set your own countdown</p>
+                        </div>
+                        
+                        <div class="timer-display" id="normal-timer-display">00:00:00</div>
+                        
+                        <!-- FIXED: Time inputs will stay horizontal on mobile -->
+                        <div class="time-inputs">
+                            <div class="time-input-group">
+                                <input type="number" class="time-input" id="hours-input" min="0" max="23" value="0">
+                                <div class="time-label">Hours</div>
+                            </div>
+                            <div class="time-separator">:</div>
+                            <div class="time-input-group">
+                                <input type="number" class="time-input" id="minutes-input" min="0" max="59" value="0">
+                                <div class="time-label">Minutes</div>
+                            </div>
+                            <div class="time-separator">:</div>
+                            <div class="time-input-group">
+                                <input type="number" class="time-input" id="seconds-input" min="0" max="59" value="0">
+                                <div class="time-label">Seconds</div>
+                            </div>
+                        </div>
+                        
+                        <div class="timer-controls">
+                            <button class="timer-btn" id="normal-start-timer">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button class="timer-btn secondary" id="normal-pause-timer" disabled>
+                                <i class="fas fa-pause"></i> Pause
+                            </button>
+                            <button class="timer-btn secondary" id="normal-reset-timer">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                        </div>
+                        
+                        <button class="timer-btn" id="normal-fullscreen-timer">
+                            <i class="fas fa-expand"></i> Full Screen
+                        </button>
+                        
+                        <div class="timer-progress">
+                            <div class="progress-bar" id="normal-progress-bar"></div>
+                        </div>
+                        
+                        <div class="timer-status" id="normal-timer-status">Set your time and start!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Timer -->
+    <div class="fullscreen-timer" id="fullscreen-timer-container">
+        <button class="close-fullscreen" id="close-fullscreen">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="fullscreen-status" id="fullscreen-status">Time to focus!</div>
+        <div class="fullscreen-display" id="fullscreen-display">25:00</div>
+        <div class="fullscreen-controls">
+            <button class="fullscreen-btn" id="fs-start-timer">
+                <i class="fas fa-play"></i> Start
+            </button>
+            <button class="fullscreen-btn" id="fs-pause-timer" disabled>
+                <i class="fas fa-pause"></i> Pause
+            </button>
+            <button class="fullscreen-btn" id="fs-reset-timer">
+                <i class="fas fa-redo"></i> Reset
+            </button>
+        </div>
+        <div class="fullscreen-progress">
+            <div class="fullscreen-progress-bar" id="fullscreen-progress-bar"></div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const currentDateEl = document.getElementById('current-date');
+        const prevDateBtn = document.getElementById('prev-date');
+        const nextDateBtn = document.getElementById('next-date');
+        const taskInput = document.getElementById('task-input');
+        const addBtn = document.getElementById('add-btn');
+        const taskList = document.getElementById('task-list');
+        const totalTasksEl = document.getElementById('total-tasks');
+        const completedTasksEl = document.getElementById('completed-tasks');
+        const pendingTasksEl = document.getElementById('pending-tasks');
+        
+        // Timer Toggle Elements
+        const pomodoroToggle = document.getElementById('pomodoro-toggle');
+        const normalToggle = document.getElementById('normal-toggle');
+        const pomodoroTimer = document.querySelector('.pomodoro-timer');
+        const normalTimer = document.querySelector('.normal-timer');
+        
+        // Pomodoro Timer Elements
+        const timerDisplay = document.getElementById('timer-display');
+        const startTimerBtn = document.getElementById('start-timer');
+        const pauseTimerBtn = document.getElementById('pause-timer');
+        const resetTimerBtn = document.getElementById('reset-timer');
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const timerStatus = document.getElementById('timer-status');
+        const fullscreenTimerBtn = document.getElementById('fullscreen-timer');
+        
+        // Normal Timer Elements
+        const normalTimerDisplay = document.getElementById('normal-timer-display');
+        const normalStartTimerBtn = document.getElementById('normal-start-timer');
+        const normalPauseTimerBtn = document.getElementById('normal-pause-timer');
+        const normalResetTimerBtn = document.getElementById('normal-reset-timer');
+        const normalProgressBar = document.getElementById('normal-progress-bar');
+        const normalTimerStatus = document.getElementById('normal-timer-status');
+        const normalFullscreenTimerBtn = document.getElementById('normal-fullscreen-timer');
+        const hoursInput = document.getElementById('hours-input');
+        const minutesInput = document.getElementById('minutes-input');
+        const secondsInput = document.getElementById('seconds-input');
+        
+        // Fullscreen Timer Elements
+        const fullscreenTimerContainer = document.getElementById('fullscreen-timer-container');
+        const closeFullscreenBtn = document.getElementById('close-fullscreen');
+        const fullscreenDisplay = document.getElementById('fullscreen-display');
+        const fullscreenStatus = document.getElementById('fullscreen-status');
+        const fsStartTimerBtn = document.getElementById('fs-start-timer');
+        const fsPauseTimerBtn = document.getElementById('fs-pause-timer');
+        const fsResetTimerBtn = document.getElementById('fs-reset-timer');
+        const fullscreenProgressBar = document.getElementById('fullscreen-progress-bar');
+
+        // Initialize current date
+        let currentDate = new Date();
+
+        // Timer variables
+        let pomodoroTimerInterval;
+        let normalTimerInterval;
+        let isPomodoroRunning = false;
+        let isNormalTimerRunning = false;
+        let pomodoroTimeLeft;
+        let normalTimerTimeLeft;
+        let currentMode = 'pomodoro';
+        let currentTimerType = 'pomodoro';
+        const timerModes = {
+            pomodoro: 25 * 60,
+            'short-break': 5 * 60,
+            'long-break': 15 * 60
+        };
+
+        // Initialize the application
+        function initApp() {
+            updateDateDisplay();
+            initializePomodoroTimer();
+            initializeNormalTimer();
+            loadTasksForDate(currentDate);
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Date navigation
+            prevDateBtn.addEventListener('click', navigateToPreviousDate);
+            nextDateBtn.addEventListener('click', navigateToNextDate);
+            
+            // Task management
+            addBtn.addEventListener('click', addTask);
+            taskInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addTask();
+            });
+            
+            // Timer type toggle
+            pomodoroToggle.addEventListener('click', () => switchTimerType('pomodoro'));
+            normalToggle.addEventListener('click', () => switchTimerType('normal'));
+            
+            // Pomodoro timer controls
+            startTimerBtn.addEventListener('click', startPomodoroTimer);
+            pauseTimerBtn.addEventListener('click', pausePomodoroTimer);
+            resetTimerBtn.addEventListener('click', resetPomodoroTimer);
+            fullscreenTimerBtn.addEventListener('click', openFullscreenTimer);
+            
+            // Normal timer controls
+            normalStartTimerBtn.addEventListener('click', startNormalTimer);
+            normalPauseTimerBtn.addEventListener('click', pauseNormalTimer);
+            normalResetTimerBtn.addEventListener('click', resetNormalTimer);
+            normalFullscreenTimerBtn.addEventListener('click', openFullscreenTimer);
+            
+            // Timer mode buttons
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchMode(btn.dataset.mode);
+                });
+            });
+            
+            // Fullscreen timer controls
+            fsStartTimerBtn.addEventListener('click', () => {
+                if (currentTimerType === 'pomodoro') startPomodoroTimer();
+                else startNormalTimer();
+            });
+            
+            fsPauseTimerBtn.addEventListener('click', () => {
+                if (currentTimerType === 'pomodoro') pausePomodoroTimer();
+                else pauseNormalTimer();
+            });
+            
+            fsResetTimerBtn.addEventListener('click', () => {
+                if (currentTimerType === 'pomodoro') resetPomodoroTimer();
+                else resetNormalTimer();
+            });
+            
+            closeFullscreenBtn.addEventListener('click', closeFullscreenTimer);
+            
+            // Input validation for normal timer
+            [hoursInput, minutesInput, secondsInput].forEach(input => {
+                input.addEventListener('change', function() {
+                    let value = parseInt(this.value) || 0;
+                    
+                    if (this.id === 'hours-input') {
+                        if (value < 0) value = 0;
+                        if (value > 23) value = 23;
+                    } else {
+                        if (value < 0) value = 0;
+                        if (value > 59) value = 59;
+                    }
+                    
+                    this.value = value;
+                    
+                    // Update timer if not running
+                    if (!isNormalTimerRunning) {
+                        initializeNormalTimer();
+                    }
+                });
+            });
+        }
+
+        // Date functions
+        function formatDate(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function updateDateDisplay() {
+            currentDateEl.textContent = formatDate(currentDate);
+            loadTasksForDate(currentDate);
+        }
+
+        function navigateToPreviousDate() {
+            currentDate.setDate(currentDate.getDate() - 1);
+            updateDateDisplay();
+        }
+
+        function navigateToNextDate() {
+            currentDate.setDate(currentDate.getDate() + 1);
+            updateDateDisplay();
+        }
+
+        // Task management functions
+        function getDateKey(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function loadTasksForDate(date) {
+            const dateKey = getDateKey(date);
+            const tasks = JSON.parse(localStorage.getItem(dateKey)) || [];
+            
+            // Clear current task list
+            taskList.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <h3>No tasks for today</h3>
+                        <p>Add a task to get started with your daily routine!</p>
+                    </div>
+                `;
+            } else {
+                tasks.forEach((task, index) => {
+                    const taskItem = document.createElement('li');
+                    taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
+                    taskItem.innerHTML = `
+                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
+                        <span class="task-text">${task.text}</span>
+                        <div class="task-actions">
+                            <button class="task-action-btn edit-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="task-action-btn delete-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    const checkbox = taskItem.querySelector('.task-checkbox');
+                    const editBtn = taskItem.querySelector('.edit-btn');
+                    const deleteBtn = taskItem.querySelector('.delete-btn');
+                    
+                    checkbox.addEventListener('change', () => {
+                        toggleTaskCompletion(dateKey, index);
+                    });
+                    
+                    editBtn.addEventListener('click', () => {
+                        editTask(dateKey, index, taskItem);
+                    });
+                    
+                    deleteBtn.addEventListener('click', () => {
+                        deleteTask(dateKey, index);
+                    });
+                    
+                    taskList.appendChild(taskItem);
+                });
+            }
+            
+            updateStats(tasks);
+        }
+
+        function addTask() {
+            const text = taskInput.value.trim();
+            if (text === '') return;
+            
+            const dateKey = getDateKey(currentDate);
+            const tasks = JSON.parse(localStorage.getItem(dateKey)) || [];
+            
+            tasks.push({
+                text: text,
+                completed: false
+            });
+            
+            localStorage.setItem(dateKey, JSON.stringify(tasks));
+            taskInput.value = '';
+            loadTasksForDate(currentDate);
+        }
+
+        function toggleTaskCompletion(dateKey, index) {
+            const tasks = JSON.parse(localStorage.getItem(dateKey)) || [];
+            tasks[index].completed = !tasks[index].completed;
+            localStorage.setItem(dateKey, JSON.stringify(tasks));
+            loadTasksForDate(currentDate);
+        }
+
+        function editTask(dateKey, index, taskItem) {
+            const tasks = JSON.parse(localStorage.getItem(dateKey)) || [];
+            const currentText = tasks[index].text;
+            
+            const newText = prompt('Edit your task:', currentText);
+            if (newText !== null && newText.trim() !== '') {
+                tasks[index].text = newText.trim();
+                localStorage.setItem(dateKey, JSON.stringify(tasks));
+                loadTasksForDate(currentDate);
+            }
+        }
+
+        function deleteTask(dateKey, index) {
+            if (confirm('Are you sure you want to delete this task?')) {
+                const tasks = JSON.parse(localStorage.getItem(dateKey)) || [];
+                tasks.splice(index, 1);
+                localStorage.setItem(dateKey, JSON.stringify(tasks));
+                loadTasksForDate(currentDate);
+            }
+        }
+
+        function updateStats(tasks) {
+            const total = tasks.length;
+            const completed = tasks.filter(task => task.completed).length;
+            const pending = total - completed;
+            
+            totalTasksEl.textContent = total;
+            completedTasksEl.textContent = completed;
+            pendingTasksEl.textContent = pending;
+        }
+
+        // Timer type toggle
+        function switchTimerType(type) {
+            currentTimerType = type;
+            
+            if (type === 'pomodoro') {
+                pomodoroToggle.classList.add('active');
+                normalToggle.classList.remove('active');
+                pomodoroTimer.classList.add('active');
+                normalTimer.classList.remove('active');
+            } else {
+                pomodoroToggle.classList.remove('active');
+                normalToggle.classList.add('active');
+                pomodoroTimer.classList.remove('active');
+                normalTimer.classList.add('active');
+            }
+        }
+
+        // Pomodoro timer functions
+        function initializePomodoroTimer() {
+            pomodoroTimeLeft = timerModes[currentMode];
+            updatePomodoroTimerDisplay();
+            updatePomodoroProgressBar();
+        }
+
+        function updatePomodoroTimerDisplay() {
+            const minutes = Math.floor(pomodoroTimeLeft / 60);
+            const seconds = pomodoroTimeLeft % 60;
+            const displayText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            timerDisplay.textContent = displayText;
+            
+            if (currentTimerType === 'pomodoro') {
+                fullscreenDisplay.textContent = displayText;
+            }
+        }
+
+        function updatePomodoroProgressBar() {
+            const totalTime = timerModes[currentMode];
+            const progress = ((totalTime - pomodoroTimeLeft) / totalTime) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            if (currentTimerType === 'pomodoro') {
+                fullscreenProgressBar.style.width = `${progress}%`;
+            }
+        }
+
+        function startPomodoroTimer() {
+            if (isPomodoroRunning) return;
+            
+            isPomodoroRunning = true;
+            startTimerBtn.disabled = true;
+            pauseTimerBtn.disabled = false;
+            fsStartTimerBtn.disabled = true;
+            fsPauseTimerBtn.disabled = false;
+            
+            const statusText = currentMode === 'pomodoro' ? 'Time to focus!' : 'Time for a break!';
+            timerStatus.textContent = statusText;
+            fullscreenStatus.textContent = statusText;
+            
+            pomodoroTimerInterval = setInterval(() => {
+                pomodoroTimeLeft--;
+                updatePomodoroTimerDisplay();
+                updatePomodoroProgressBar();
+                
+                if (pomodoroTimeLeft <= 0) {
+                    clearInterval(pomodoroTimerInterval);
+                    isPomodoroRunning = false;
+                    startTimerBtn.disabled = false;
+                    pauseTimerBtn.disabled = true;
+                    fsStartTimerBtn.disabled = false;
+                    fsPauseTimerBtn.disabled = true;
+                    timerStatus.textContent = 'Time is up!';
+                    fullscreenStatus.textContent = 'Time is up!';
+                    
+                    // Play notification sound
+                    playNotificationSound();
+                    
+                    // Show notification if permission granted
+                    if (Notification.permission === 'granted') {
+                        new Notification('Pomodoro Timer', {
+                            body: `${currentMode === 'pomodoro' ? 'Focus time is over! Take a break.' : 'Break is over! Time to focus.'}`,
+                            icon: '/favicon.ico'
+                        });
+                    }
+                }
+            }, 1000);
+        }
+
+        function pausePomodoroTimer() {
+            if (!isPomodoroRunning) return;
+            
+            clearInterval(pomodoroTimerInterval);
+            isPomodoroRunning = false;
+            startTimerBtn.disabled = false;
+            pauseTimerBtn.disabled = true;
+            fsStartTimerBtn.disabled = false;
+            fsPauseTimerBtn.disabled = true;
+            timerStatus.textContent = 'Paused';
+            fullscreenStatus.textContent = 'Paused';
+        }
+
+        function resetPomodoroTimer() {
+            clearInterval(pomodoroTimerInterval);
+            isPomodoroRunning = false;
+            startTimerBtn.disabled = false;
+            pauseTimerBtn.disabled = true;
+            fsStartTimerBtn.disabled = false;
+            fsPauseTimerBtn.disabled = true;
+            initializePomodoroTimer();
+            timerStatus.textContent = 'Ready to focus!';
+            fullscreenStatus.textContent = 'Ready to focus!';
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            modeButtons.forEach(btn => {
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            resetPomodoroTimer();
+        }
+
+        // Normal timer functions
+        function initializeNormalTimer() {
+            const hours = parseInt(hoursInput.value) || 0;
+            const minutes = parseInt(minutesInput.value) || 0;
+            const seconds = parseInt(secondsInput.value) || 0;
+            
+            normalTimerTimeLeft = hours * 3600 + minutes * 60 + seconds;
+            updateNormalTimerDisplay();
+            updateNormalProgressBar();
+        }
+
+        function updateNormalTimerDisplay() {
+            const hours = Math.floor(normalTimerTimeLeft / 3600);
+            const minutes = Math.floor((normalTimerTimeLeft % 3600) / 60);
+            const seconds = normalTimerTimeLeft % 60;
+            
+            const displayText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            normalTimerDisplay.textContent = displayText;
+            
+            if (currentTimerType === 'normal') {
+                fullscreenDisplay.textContent = displayText;
+            }
+        }
+
+        function updateNormalProgressBar() {
+            const totalTime = getNormalTimerTotalTime();
+            if (totalTime === 0) return;
+            
+            const progress = ((totalTime - normalTimerTimeLeft) / totalTime) * 100;
+            normalProgressBar.style.width = `${progress}%`;
+            
+            if (currentTimerType === 'normal') {
+                fullscreenProgressBar.style.width = `${progress}%`;
+            }
+        }
+
+        function getNormalTimerTotalTime() {
+            const hours = parseInt(hoursInput.value) || 0;
+            const minutes = parseInt(minutesInput.value) || 0;
+            const seconds = parseInt(secondsInput.value) || 0;
+            
+            return hours * 3600 + minutes * 60 + seconds;
+        }
+
+        function startNormalTimer() {
+            if (isNormalTimerRunning) return;
+            
+            // If timer is at 0, initialize from inputs
+            if (normalTimerTimeLeft <= 0) {
+                initializeNormalTimer();
+            }
+            
+            // Don't start if time is 0
+            if (normalTimerTimeLeft <= 0) {
+                normalTimerStatus.textContent = 'Please set a time first!';
+                return;
+            }
+            
+            isNormalTimerRunning = true;
+            normalStartTimerBtn.disabled = true;
+            normalPauseTimerBtn.disabled = false;
+            fsStartTimerBtn.disabled = true;
+            fsPauseTimerBtn.disabled = false;
+            
+            normalTimerStatus.textContent = 'Timer running...';
+            fullscreenStatus.textContent = 'Timer running...';
+            
+            normalTimerInterval = setInterval(() => {
+                normalTimerTimeLeft--;
+                updateNormalTimerDisplay();
+                updateNormalProgressBar();
+                
+                if (normalTimerTimeLeft <= 0) {
+                    clearInterval(normalTimerInterval);
+                    isNormalTimerRunning = false;
+                    normalStartTimerBtn.disabled = false;
+                    normalPauseTimerBtn.disabled = true;
+                    fsStartTimerBtn.disabled = false;
+                    fsPauseTimerBtn.disabled = true;
+                    normalTimerStatus.textContent = 'Time is up!';
+                    fullscreenStatus.textContent = 'Time is up!';
+                    
+                    // Play notification sound
+                    playNotificationSound();
+                    
+                    // Show notification if permission granted
+                    if (Notification.permission === 'granted') {
+                        new Notification('Normal Timer', {
+                            body: 'Your timer has finished!',
+                            icon: '/favicon.ico'
+                        });
+                    }
+                }
+            }, 1000);
+        }
+
+        function pauseNormalTimer() {
+            if (!isNormalTimerRunning) return;
+            
+            clearInterval(normalTimerInterval);
+            isNormalTimerRunning = false;
+            normalStartTimerBtn.disabled = false;
+            normalPauseTimerBtn.disabled = true;
+            fsStartTimerBtn.disabled = false;
+            fsPauseTimerBtn.disabled = true;
+            normalTimerStatus.textContent = 'Timer paused';
+            fullscreenStatus.textContent = 'Timer paused';
+        }
+
+        function resetNormalTimer() {
+            clearInterval(normalTimerInterval);
+            isNormalTimerRunning = false;
+            normalStartTimerBtn.disabled = false;
+            normalPauseTimerBtn.disabled = true;
+            fsStartTimerBtn.disabled = false;
+            fsPauseTimerBtn.disabled = true;
+            initializeNormalTimer();
+            normalTimerStatus.textContent = 'Set your time and start!';
+            fullscreenStatus.textContent = 'Set your time and start!';
+        }
+
+        // Fullscreen timer functions
+        function openFullscreenTimer() {
+            fullscreenTimerContainer.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Update fullscreen display based on current timer type
+            if (currentTimerType === 'pomodoro') {
+                updatePomodoroTimerDisplay();
+                updatePomodoroProgressBar();
+            } else {
+                updateNormalTimerDisplay();
+                updateNormalProgressBar();
+            }
+        }
+
+        function closeFullscreenTimer() {
+            fullscreenTimerContainer.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Utility functions
+        function playNotificationSound() {
+            // Create a simple beep sound using Web Audio API
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 1);
+            } catch (e) {
+                console.log('Audio context not supported');
+            }
+        }
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Initialize the app when the page loads
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
